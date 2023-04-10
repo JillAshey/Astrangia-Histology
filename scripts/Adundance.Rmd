@@ -45,8 +45,10 @@ Abundance_female_long <- gather(Abundance_female, stage, value, rel_prop_stage1:
 
 ### Plot
 ```{r}
-ggplot(Abundance_female_long, aes(fill=stage, y=value, x=Timepoint)) + 
+female_abund_plot <- ggplot(Abundance_female_long, aes(fill=stage, y=value, x=Timepoint)) + 
     geom_bar(position="fill", stat="identity")
+
+ggsave("output/Female_Gamete_Abundance.pdf", female_abund_plot)
 ```
 
 ## Select Male 
@@ -74,8 +76,10 @@ Abundance_male_long <- gather(Abundance_male, stage, value, rel_prop_stage1:rel_
 
 ### Plot
 ```{r}
-ggplot(Abundance_male_long, aes(fill=stage, y=value, x=Timepoint)) + 
+male_abund_plot <- ggplot(Abundance_male_long, aes(fill=stage, y=value, x=Timepoint)) + 
     geom_bar(position="fill", stat="identity")
+
+ggsave("output/Male_Gamete_Abundance.pdf", male_abund_plot)
 ```
 
 
