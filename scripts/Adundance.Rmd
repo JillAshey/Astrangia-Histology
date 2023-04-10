@@ -1,0 +1,83 @@
+---
+title: "Gamete Abundance Analysis"
+author: "jillashey"
+date: "2023-04-10"
+output: html_document
+---
+
+This script will analyze gamete abundance in Astrangia poculata over time. The data is separated into 3 treatments (ambient temperature, high temperature, field). 
+
+## Load packages 
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+```
+
+## Load data & select specific columns 
+```{r}
+Abundance <- read.csv("data/Abundance.csv", header = T, na.strings = c("", "NA")) %>% 
+  select(Coral.ID, Timepoint, Sex, Abundance.of.Stage.One, Abundance.of.Stage.Two, Abundance.of.Stage.Three, Abundance.of.Stage.Four, Abundance.of.Stage.Five, Total.Gamates)
+```
+
+## Select Female 
+```{r}
+Abundance_female <- Abundance %>% 
+  filter(Sex == "Female") 
+```
+
+### Calculate relative proportion of each stage 
+```{r}
+Abundance_female <- Abundance_female %>%
+  mutate(rel_prop_stage1 = (Abundance.of.Stage.One / Total.Gamates) * 100,
+         rel_prop_stage2 = (Abundance.of.Stage.Two / Total.Gamates) * 100, 
+         rel_prop_stage3 = (Abundance.of.Stage.Three / Total.Gamates) * 100, 
+         rel_prop_stage4 = (Abundance.of.Stage.Four / Total.Gamates) * 100,
+         rel_prop_stage5 = (Abundance.of.Stage.Five / Total.Gamates) * 100)
+```
+
+### Change data from wide to long 
+```{r}
+Abundance_female_long <- gather(Abundance_female, stage, value, rel_prop_stage1:rel_prop_stage5) %>% 
+  select(Coral.ID, Timepoint, Sex, stage, value) %>% 
+  na.omit()
+```
+
+### Plot
+```{r}
+ggplot(Abundance_female_long, aes(fill=stage, y=value, x=Timepoint)) + 
+    geom_bar(position="fill", stat="identity")
+```
+
+## Select Male 
+```{r}
+Abundance_male <- Abundance %>% 
+  filter(Sex == "Male") 
+```
+
+### Calculate relative proportion of each stage 
+```{r}
+Abundance_male <- Abundance_male %>%
+  mutate(rel_prop_stage1 = (Abundance.of.Stage.One / Total.Gamates) * 100,
+         rel_prop_stage2 = (Abundance.of.Stage.Two / Total.Gamates) * 100, 
+         rel_prop_stage3 = (Abundance.of.Stage.Three / Total.Gamates) * 100, 
+         rel_prop_stage4 = (Abundance.of.Stage.Four / Total.Gamates) * 100,
+         rel_prop_stage5 = (Abundance.of.Stage.Five / Total.Gamates) * 100)
+```
+
+### Change data from wide to long 
+```{r}
+Abundance_male_long <- gather(Abundance_male, stage, value, rel_prop_stage1:rel_prop_stage5) %>% 
+  select(Coral.ID, Timepoint, Sex, stage, value) %>% 
+  na.omit()
+```
+
+### Plot
+```{r}
+ggplot(Abundance_male_long, aes(fill=stage, y=value, x=Timepoint)) + 
+    geom_bar(position="fill", stat="identity")
+```
+
+
+
+
