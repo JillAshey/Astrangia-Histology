@@ -12,12 +12,15 @@ This script will analyze gamete abundance in Astrangia poculata over time. The d
 knitr::opts_chunk$set(echo = TRUE)
 
 library(tidyverse)
+library("RColorBrewer")
 ```
 
 ## Load data & select specific columns 
 ```{r}
 Abundance <- read.csv("data/Abundance.csv", header = T, na.strings = c("", "NA")) %>% 
-  select(Coral.ID, Timepoint, Sex, Abundance.of.Stage.One, Abundance.of.Stage.Two, Abundance.of.Stage.Three, Abundance.of.Stage.Four, Abundance.of.Stage.Five, Total.Gamates)
+  select(Coral.ID, Treatment, Timepoint, Sex, Abundance.of.Stage.One, Abundance.of.Stage.Two, Abundance.of.Stage.Three, Abundance.of.Stage.Four, Abundance.of.Stage.Five, Total.Gamates)
+
+######### Include Site eventually 
 ```
 
 ## Select Female 
@@ -39,16 +42,54 @@ Abundance_female <- Abundance_female %>%
 ### Change data from wide to long 
 ```{r}
 Abundance_female_long <- gather(Abundance_female, stage, value, rel_prop_stage1:rel_prop_stage5) %>% 
-  select(Coral.ID, Timepoint, Sex, stage, value) %>% 
+  select(Coral.ID, Treatment, Timepoint, Sex, stage, value) %>% 
   na.omit()
 ```
+
+### SUMMARIZE DATA
+Contingency plot 
 
 ### Plot
 ```{r}
 female_abund_plot <- ggplot(Abundance_female_long, aes(fill=stage, y=value, x=Timepoint)) + 
-    geom_bar(position="fill", stat="identity")
+    geom_bar(position="fill", stat="identity", color = "black") +
+    scale_fill_manual(values = brewer.pal(n=4, name = "Blues")) +
+    theme_classic()
+female_abund_plot
+
+
+
+ggplot(Abundance_female_long, aes(fill=stage, y=value, x=Timepoint)) + 
+    stat_summary(fun.y=sum, geom="bar", colour="black", position = "fill", stat = "identity") +
+    #geom_bar(position="fill", stat="identity", color = "black") +
+    scale_fill_manual(values = brewer.pal(n=4, name = "Blues")) +
+    scale_y_continuous(expand = c(0, 0)) +
+    ylab("Relative Proportion") +
+    #scale_fill_discrete(labels=c('Stage 1', 'Stage 2', "Stage 3", "Stage 4")) +
+    theme_classic() 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+female_abund_trt_plot <- ggplot(Abundance_female_long, aes(fill=stage, y=value, x=Timepoint)) + 
+    geom_bar(position="fill", stat="identity") + 
+    facet_wrap(~Treatment)
+female_abund_trt_plot
 
 ggsave("output/Female_Gamete_Abundance.pdf", female_abund_plot)
+ggsave("output/Female_Gamete_Abundance_Treatment.pdf", female_abund_trt_plot)
 ```
 
 ## Select Male 
@@ -70,7 +111,7 @@ Abundance_male <- Abundance_male %>%
 ### Change data from wide to long 
 ```{r}
 Abundance_male_long <- gather(Abundance_male, stage, value, rel_prop_stage1:rel_prop_stage5) %>% 
-  select(Coral.ID, Timepoint, Sex, stage, value) %>% 
+  select(Coral.ID, Treatment, Timepoint, Sex, stage, value) %>% 
   na.omit()
 ```
 
@@ -78,9 +119,17 @@ Abundance_male_long <- gather(Abundance_male, stage, value, rel_prop_stage1:rel_
 ```{r}
 male_abund_plot <- ggplot(Abundance_male_long, aes(fill=stage, y=value, x=Timepoint)) + 
     geom_bar(position="fill", stat="identity")
+male_abund_plot
+
+male_abund_trt_plot <- ggplot(Abundance_male_long, aes(fill=stage, y=value, x=Timepoint)) + 
+    geom_bar(position="fill", stat="identity") + 
+    facet_wrap(~Treatment)
+male_abund_trt_plot
 
 ggsave("output/Male_Gamete_Abundance.pdf", male_abund_plot)
+ggsave("output/Male_Gamete_Abundance_Treatment.pdf", male_abund_trt_plot)
 ```
+
 
 
 

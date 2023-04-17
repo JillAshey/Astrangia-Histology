@@ -1,0 +1,70 @@
+---
+title: "Gamete size analysis"
+author: "jillashey"
+date: "2023-04-16"
+output: html_document
+---
+
+This script will analyze gamete size in Astrangia poculata over time. The data is separated into 3 treatments (ambient temperature, high temperature, field). 
+
+## Load packages 
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+```
+
+## Load data & select specific columns 
+```{r}
+Size  <- read.csv("data/Size.csv", header = T, na.strings = c("", "NA")) %>% 
+  select(Coral.ID, Treatment, Timepoint, Sex, Scale, Average.of.Stage.One, Average.of.Stage.Two, Average.of.Stage.Three, Average.of.Stage.Four, Average.of.Stage.Five, Total.Gamates)
+
+######### Include Site eventually 
+```
+
+##### ONLY SELECTING FIELD SAMPLES AT THE MOMENT 
+
+## Select Female 
+```{r}
+Size_female <- Size %>% 
+  filter(Sex == "Female") %>%
+  filter(Treatment == "Field") %>%
+  filter(!Timepoint == "TP0") # remove random AST sample that is labeled as FLD 
+
+# Make avg columns numeric 
+Size_female$Average.of.Stage.One <- as.numeric(Size_female$Average.of.Stage.One)
+Size_female$Average.of.Stage.Two <- as.numeric(Size_female$Average.of.Stage.Two)
+Size_female$Average.of.Stage.Three <- as.numeric(Size_female$Average.of.Stage.Three)
+Size_female$Average.of.Stage.Four <- as.numeric(Size_female$Average.of.Stage.Four)
+Size_female$Average.of.Stage.Five <- as.numeric(Size_female$Average.of.Stage.Five)
+```
+
+## group by TP
+```{r}
+test <- Size_female %>% 
+  group_by(Timepoint) %>%
+  summarise(avg1 = mean(Average.of.Stage.One),
+            avg2 = mean(Average.of.Stage.Two),
+            avg3 = mean(Average.of.Stage.Three),
+            avg4 = mean(Average.of.Stage.Four),
+            avg5 = mean(Average.of.Stage.Five),
+            sd1 = sd(Average.of.Stage.One),
+            sd2 = sd(Average.of.Stage.Two),
+            sd3 = sd(Average.of.Stage.Three),
+            sd4 = sd(Average.of.Stage.Four),
+            sd5 = sd(Average.of.Stage.Five), na.action = na.omit) #### not working 
+
+
+tp2 <- Size_female %>%
+  filter(Timepoint == "TP2") 
+
+mean(tp2$Average.of.Stage.One, na.rm = T)
+sd(tp2$Average.of.Stage.One, na.rm = T)
+
+mean(tp2$Average.of.Stage.Two, na.rm = T)
+sd(tp2$Average.of.Stage.Two, na.rm = T)
+
+mean(tp2$Average.of.Stage.Two, na.rm = T)
+sd(tp2$Average.of.Stage.Two, na.rm = T)
+```
+
