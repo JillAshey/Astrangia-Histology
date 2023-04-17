@@ -17,93 +17,132 @@ library(tidyverse)
 ## Load data & select specific columns 
 ```{r}
 Size  <- read.csv("data/Size.csv", header = T, na.strings = c("", "NA")) %>% 
-  select(Coral.ID, Treatment, Timepoint, Sex, Scale, Average.of.Stage.One, Average.of.Stage.Two, Average.of.Stage.Three, Average.of.Stage.Four, Average.of.Stage.Five, Total.Gamates)
+  select(Coral.ID, Treatment, Timepoint, Sex, Scale, Average.of.Stage.One, Average.of.Stage.Two, Average.of.Stage.Three, Average.of.Stage.Four, Average.of.Stage.Five, Total.Gamates) %>%
+  rename("Stage1_avg" = "Average.of.Stage.One",
+         "Stage2_avg" = "Average.of.Stage.Two",
+         "Stage3_avg" = "Average.of.Stage.Three",
+         "Stage4_avg" = "Average.of.Stage.Four",
+         "Stage5_avg" = "Average.of.Stage.Five")
 
 ######### Include Site eventually 
 ```
-
-##### ONLY SELECTING FIELD SAMPLES AT THE MOMENT 
 
 ## Select Female 
 ```{r}
 Size_female <- Size %>% 
   filter(Sex == "Female") %>%
-  filter(Treatment == "Field") %>%
+  #filter(Treatment == "Field") %>%
   filter(!Timepoint == "TP0") # remove random AST sample that is labeled as FLD 
 
 # Make avg columns numeric 
-Size_female$Average.of.Stage.One <- as.numeric(Size_female$Average.of.Stage.One)
-Size_female$Average.of.Stage.Two <- as.numeric(Size_female$Average.of.Stage.Two)
-Size_female$Average.of.Stage.Three <- as.numeric(Size_female$Average.of.Stage.Three)
-Size_female$Average.of.Stage.Four <- as.numeric(Size_female$Average.of.Stage.Four)
-Size_female$Average.of.Stage.Five <- as.numeric(Size_female$Average.of.Stage.Five)
+Size_female$Stage1_avg <- as.numeric(Size_female$Stage1_avg)
+Size_female$Stage2_avg <- as.numeric(Size_female$Stage2_avg)
+Size_female$Stage3_avg <- as.numeric(Size_female$Stage3_avg)
+Size_female$Stage4_avg <- as.numeric(Size_female$Stage4_avg)
+Size_female$Stage5_avg <- as.numeric(Size_female$Stage5_avg)
 ```
 
-##  
+## Wide to long
 ```{r}
-Size_female_long <- gather(Size_female, stage, value, Average.of.Stage.One:Average.of.Stage.Four) %>% 
+Size_female_long <- gather(Size_female, stage, value, Stage1_avg:Stage5_avg) %>% 
   select(Coral.ID, Treatment, Timepoint, Sex, stage, value) %>% 
   na.omit()
 ```
 
-
-## group by TP and find avg & sd of each stage 
+## Plot 
 ```{r}
+ggplot(Size_female_long, aes(x = Timepoint, y = value, fill = stage)) +
+  geom_point() +
+  facet_wrap(~stage)
 
-blah <- Size_female_long %>%
-  group_by(Timepoint, stage) %>%
-  summarise(avg = mean(value),
-            sd = sd(value))
+plot <- ggplot(Size_female_long, aes(x = stage, y = value, fill = stage)) +
+  geom_point(aes(fill = stage), size = 25, pch =21, color = "black") +
+  facet_grid(~Timepoint) +
+  scale_fill_manual(values = c("#CCEEF9", "#A6E1F4", "#59C7EB", "#00A9E0"), labels = c("Stage 1", "Stage 2", "Stage 3", "Stage 4")) +
+  #scale_color_manual(values = brewer.pal(n=4, name = "Blues")) +
+  scale_x_discrete(labels = c("Stage 1", "Stage 2", "Stage 3", "Stage 4")) +
+  #scale_discrete_manual(labels = c("Stage 1", "Stage 2", "Stage 3", "Stage 4")) +
+  ylab("Microns (µm)") +
+  xlab("") +
+  theme_bw() +
+  #theme_linedraw() +
+  #theme(panel.grid.major = element_line(colour = "black")) +
+  theme(axis.text.x = element_text(angle = 65,
+                                   hjust = 1,
+                                   size = 60,
+                                   color = "black")) +
+  theme(axis.text.y = element_text(size = 60,
+                                   color = "black"),
+        axis.title.y = element_text(size = 70)) +
+  theme(strip.text.x = element_text(size = 60),
+        panel.border=element_rect(colour="black",size=1)) +
+  theme(legend.position = "none") 
+  # theme(legend.title = element_text(size = 0),
+  #       legend.text = element_text(size = 10),
+  #       legend.position = "top", 
+  #       legend.direction = "horizontal")
+plot
+ggsave("output/Female_Gamete_Size.pdf", plot, width = 40, height = 30, units = "in")
+ggsave("output/Female_Gamete_Size.png", plot, width = 40, height = 30, units = "in")
+```
 
-ggplot(blah, aes(y=avg, x=Timepoint, color = stage)) + 
-  geom_point()
+## Select Male 
+```{r}
+Size_male <- Size %>% 
+  filter(Sex == "Male") %>%
+  #filter(Treatment == "Field") %>%
+  filter(!Timepoint == "TP0") # remove random AST sample that is labeled as FLD 
 
+# Make avg columns numeric 
+Size_male$Stage1_avg <- as.numeric(Size_male$Stage1_avg)
+Size_male$Stage2_avg <- as.numeric(Size_male$Stage2_avg)
+Size_male$Stage3_avg <- as.numeric(Size_male$Stage3_avg)
+Size_male$Stage4_avg <- as.numeric(Size_male$Stage4_avg)
+Size_male$Stage5_avg <- as.numeric(Size_male$Stage5_avg)
+```
 
+## Wide to long
+```{r}
+Size_male_long <- gather(Size_male, stage, value, Stage1_avg:Stage5_avg) %>% 
+  select(Coral.ID, Treatment, Timepoint, Sex, stage, value) %>% 
+  na.omit()
+  #filter(value <= 10000)
+```
 
-blah_tp2 <- blah %>% 
-  filter(stage == "Average.of.Stage.Two")
+## Plot 
+```{r}
+ggplot(Size_male_long, aes(x = Timepoint, y = value, fill = stage)) +
+  geom_point() +
+  facet_wrap(~stage)
 
-ggplot(blah_tp2, aes(y=avg, x=Timepoint)) + 
-  geom_point()
-
-blah_tp2 <- blah %>% 
-  filter(Timepoint == "TP2")
-
-ggplot(blah_tp2, aes(y=avg, x=stage)) + 
-  geom_point()
-
-
-
-
-
-
-
-
-
-test <- Size_female %>% 
-  group_by(Timepoint) %>%
-  summarise(avg1 = mean(Average.of.Stage.One),
-            sd1 = sd(Average.of.Stage.One))
-
-test2 <- Size_female %>% 
-  group_by(Timepoint) %>%
-  summarise(avg2 = mean(Average.of.Stage.Two),
-            sd2 = sd(Average.of.Stage.Two))
-
-test3 <- Size_female %>% 
-  group_by(Timepoint) %>%
-  summarise(avg3 = mean(Average.of.Stage.Three),
-            sd3 = sd(Average.of.Stage.Three))
-
-test4 <- Size_female %>% 
-  group_by(Timepoint) %>%
-  summarise(avg4 = mean(Average.of.Stage.Four),
-            sd4 = sd(Average.of.Stage.Four))
-
-df_list <- list(test, test2, test3, test4)
-
-# merge all dfs together 
-all <- df_list %>%
-  reduce(full_join, by = "Timepoint")
+plot <- ggplot(Size_male_long, aes(x = stage, y = value, fill = stage)) +
+  geom_point(aes(fill = stage), size = 25, pch =21, color = "black") +
+  facet_grid(~Timepoint) +
+  scale_fill_manual(values = c("#CCEEF9", "#A6E1F4", "#59C7EB", "#00A9E0", "#008ECE"), labels=c('Stage 1', 'Stage 2', "Stage 3", "Stage 4", "Stage 5")) +
+  #scale_color_manual(values = brewer.pal(n=4, name = "Blues")) +
+  scale_x_discrete(labels = c("Stage 1", "Stage 2", "Stage 3", "Stage 4", "Stage 5")) +
+  #scale_discrete_manual(labels = c("Stage 1", "Stage 2", "Stage 3", "Stage 4")) +
+  ylab("Microns (µm)") +
+  xlab("") +
+  theme_bw() +
+  #theme_linedraw() +
+  #theme(panel.grid.major = element_line(colour = "black")) +
+  theme(axis.text.x = element_text(angle = 65,
+                                   hjust = 1,
+                                   size = 60,
+                                   color = "black")) +
+  theme(axis.text.y = element_text(size = 60,
+                                   color = "black"),
+        axis.title.y = element_text(size = 70)) +
+  theme(strip.text.x = element_text(size = 60),
+        panel.border=element_rect(colour="black",size=1)) +
+  theme(legend.position = "none") 
+  # theme(legend.title = element_text(size = 0),
+  #       legend.text = element_text(size = 10),
+  #       legend.position = "top", 
+  #       legend.direction = "horizontal")
+plot
+ggsave("output/Male_Gamete_Size.pdf", plot, width = 40, height = 30, units = "in")
+ggsave("output/Male_Gamete_Size.png", plot, width = 40, height = 30, units = "in")
 ```
 
