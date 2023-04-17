@@ -39,32 +39,71 @@ Size_female$Average.of.Stage.Four <- as.numeric(Size_female$Average.of.Stage.Fou
 Size_female$Average.of.Stage.Five <- as.numeric(Size_female$Average.of.Stage.Five)
 ```
 
-## group by TP
+##  
 ```{r}
+Size_female_long <- gather(Size_female, stage, value, Average.of.Stage.One:Average.of.Stage.Four) %>% 
+  select(Coral.ID, Treatment, Timepoint, Sex, stage, value) %>% 
+  na.omit()
+```
+
+
+## group by TP and find avg & sd of each stage 
+```{r}
+
+blah <- Size_female_long %>%
+  group_by(Timepoint, stage) %>%
+  summarise(avg = mean(value),
+            sd = sd(value))
+
+ggplot(blah, aes(y=avg, x=Timepoint, color = stage)) + 
+  geom_point()
+
+
+
+blah_tp2 <- blah %>% 
+  filter(stage == "Average.of.Stage.Two")
+
+ggplot(blah_tp2, aes(y=avg, x=Timepoint)) + 
+  geom_point()
+
+blah_tp2 <- blah %>% 
+  filter(Timepoint == "TP2")
+
+ggplot(blah_tp2, aes(y=avg, x=stage)) + 
+  geom_point()
+
+
+
+
+
+
+
+
+
 test <- Size_female %>% 
   group_by(Timepoint) %>%
   summarise(avg1 = mean(Average.of.Stage.One),
-            avg2 = mean(Average.of.Stage.Two),
-            avg3 = mean(Average.of.Stage.Three),
-            avg4 = mean(Average.of.Stage.Four),
-            avg5 = mean(Average.of.Stage.Five),
-            sd1 = sd(Average.of.Stage.One),
-            sd2 = sd(Average.of.Stage.Two),
-            sd3 = sd(Average.of.Stage.Three),
-            sd4 = sd(Average.of.Stage.Four),
-            sd5 = sd(Average.of.Stage.Five), na.action = na.omit) #### not working 
+            sd1 = sd(Average.of.Stage.One))
 
+test2 <- Size_female %>% 
+  group_by(Timepoint) %>%
+  summarise(avg2 = mean(Average.of.Stage.Two),
+            sd2 = sd(Average.of.Stage.Two))
 
-tp2 <- Size_female %>%
-  filter(Timepoint == "TP2") 
+test3 <- Size_female %>% 
+  group_by(Timepoint) %>%
+  summarise(avg3 = mean(Average.of.Stage.Three),
+            sd3 = sd(Average.of.Stage.Three))
 
-mean(tp2$Average.of.Stage.One, na.rm = T)
-sd(tp2$Average.of.Stage.One, na.rm = T)
+test4 <- Size_female %>% 
+  group_by(Timepoint) %>%
+  summarise(avg4 = mean(Average.of.Stage.Four),
+            sd4 = sd(Average.of.Stage.Four))
 
-mean(tp2$Average.of.Stage.Two, na.rm = T)
-sd(tp2$Average.of.Stage.Two, na.rm = T)
+df_list <- list(test, test2, test3, test4)
 
-mean(tp2$Average.of.Stage.Two, na.rm = T)
-sd(tp2$Average.of.Stage.Two, na.rm = T)
+# merge all dfs together 
+all <- df_list %>%
+  reduce(full_join, by = "Timepoint")
 ```
 
